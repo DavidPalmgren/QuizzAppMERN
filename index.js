@@ -17,7 +17,7 @@ const app = express()
 app.use(cors())
 app.use(express.json())
 
-app.listen(4040, () => console.log('api running'))
+app.listen(PORT, () => console.log('api running'))
 
 app.get('/', async (req, res) => {
     const allCards = await cards.find().toArray()
