@@ -24,7 +24,14 @@ app.get('/', async (req, res) => {
     res.json(allCards)
 })
 
-app.post('/', async (req, res) => {
-    await cards.insertOne({ name: 'Fool', favorite: true})
-    res.json('Item was added')
-})
+app.post('/add-card', async (req, res) => {
+    const { name, favorite } = req.body;
+  
+    try {
+      const result = await cards.insertOne({ name, favorite });
+      res.status(201).json({ message: 'Item was added', insertedId: result.insertedId });
+    } catch (error) {
+      console.error('Error adding item:', error);
+      res.status(500).json({ message: 'Error adding item' });
+    }
+});
