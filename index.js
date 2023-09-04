@@ -14,17 +14,21 @@ console.log('connected to mongodb')
 const PORT = process.env.PORT
 
 const app = express()
-app.use(cors())
+const corsOptions = {
+    origin: 'https://studyapp-dapa-98dcdc34bdde.herokuapp.com/',
+};
+  
+  app.use(cors(corsOptions));
 app.use(express.json())
 
 app.listen(PORT, () => console.log('api running'))
 
-app.get('/', async (req, res) => {
+app.get('/api/cards', async (req, res) => {
     const allCards = await cards.find().toArray()
     res.json(allCards)
 })
 
-app.post('/add-card', async (req, res) => {
+app.post('/api/add-card', async (req, res) => {
     const { name, favorite } = req.body;
   
     try {

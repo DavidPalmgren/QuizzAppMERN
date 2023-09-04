@@ -1,28 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import HomePage from './components/HomePage';
 
 function App() {
-  const [cards, setCards] = useState([]);
-
-  useEffect(() => {
-    axios.get('http://your-api-server-url/') // Replace with your API server URL
-      .then((response) => {
-        setCards(response.data);
-      })
-      .catch((error) => {
-        console.error('Error fetching data:', error);
-      });
-  }, []);
-
   return (
-    <div className="App">
-      {/* Render your data here */}
-      <ul>
-        {cards.map((card) => (
-          <li key={card._id}>{card.name}</li>
-        ))}
-      </ul>
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+      </Routes>
+    </Router>
   );
 }
 
