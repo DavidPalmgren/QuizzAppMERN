@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 
 function HomePage() {
   const [cards, setCards] = useState([]);
@@ -7,9 +6,14 @@ function HomePage() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const response = await axios.get('https://studyapp-dapa-98dcdc34bdde.herokuapp.com/api/cards');
-        console.log('API Response:', response.data); // Log the response data
-        setCards(response.data);
+        const response = await fetch('https://studyapp-dapa-98dcdc34bdde.herokuapp.com/api/cards');
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+
+        const data = await response.json();
+        console.log('API Response:', data); // Log the response data
+        setCards(data);
       } catch (error) {
         console.error('Error fetching data:', error);
       }
