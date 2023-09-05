@@ -16,11 +16,13 @@ const PORT = process.env.PORT || 5555
 
 
 const corsOptions = {
-    origin: 'https://studyapp-dapa-98dcdc34bdde.herokuapp.com',
+  origin: 'https://studyapp-dapa-98dcdc34bdde.herokuapp.com/', // Replace with your React app's domain
+  methods: 'GET,POST', // Add the HTTP methods you're using
 };
 
-app.use(express.static(path.join(__dirname, 'frontend/my-react-app/build')));
 app.use(cors(corsOptions));
+
+app.use(express.static(path.join(__dirname, 'frontend/my-react-app/build')));
 app.use(express.json())
 
 app.listen(PORT, () => console.log('api running'))
