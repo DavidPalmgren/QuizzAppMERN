@@ -5,8 +5,9 @@ function HomePage() {
   const [cards, setCards] = useState([]);
 
   useEffect(() => {
-    axios.get('https://studyapp-dapa-98dcdc34bdde.herokuapp.com/api/cards') // Assuming your Express API serves at '/api/cards'
+    axios.get('https://studyapp-dapa-98dcdc34bdde.herokuapp.com/api/cards')
       .then((response) => {
+        console.log('API Response:', response.data); // Log the response data
         setCards(response.data);
       })
       .catch((error) => {
