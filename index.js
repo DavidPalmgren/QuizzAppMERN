@@ -2,7 +2,7 @@ import express from 'express'
 import cors from 'cors'
 import 'dotenv/config'
 import {MongoClient} from 'mongodb'
-const path = require('path');
+import path from 'path'
 
 const URI = process.env.MONGO_URI
 const client = new MongoClient(URI)
@@ -19,7 +19,7 @@ const corsOptions = {
     origin: 'https://studyapp-dapa-98dcdc34bdde.herokuapp.com',
 };
 
-app.use(express.static(path.join(__dirname, 'build')));
+app.use(express.static(path.join(__dirname, 'frontend/my-react-app/build')));
 app.use(cors(corsOptions));
 app.use(express.json())
 
@@ -43,5 +43,5 @@ app.post('/api/add-card', async (req, res) => {
 });
 
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'build', 'index.html'));
+    res.sendFile(path.join(__dirname, 'frontend/my-react-app/build', 'index.html'));
 });
