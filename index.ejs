@@ -1,8 +1,8 @@
-import express from 'express'
-import cors from 'cors'
-import 'dotenv/config'
-import {MongoClient} from 'mongodb'
-import path from 'path'
+const express = require('express');
+const path = require('path');
+const { MongoClient } = require('mongodb');
+const cors = require('cors');
+const app = express()
 
 const URI = process.env.MONGO_URI
 const client = new MongoClient(URI)
@@ -14,7 +14,7 @@ console.log('connected to mongodb')
 
 const PORT = process.env.PORT
 
-const app = express()
+
 const corsOptions = {
     origin: 'https://studyapp-dapa-98dcdc34bdde.herokuapp.com',
 };
