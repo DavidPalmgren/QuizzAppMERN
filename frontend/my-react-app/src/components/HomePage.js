@@ -7,7 +7,7 @@ function HomePage() {
   const [cards, setCards] = useState([]);
 
   useEffect(() => {
-    axios.get('http://localhost:4040/api/cards') // Assuming your Express API serves at '/api/cards'
+    axios.get('https://studyapp-dapa-98dcdc34bdde.herokuapp.com/') // Assuming your Express API serves at '/api/cards'
       .then((response) => {
         setCards(response.data);
       })

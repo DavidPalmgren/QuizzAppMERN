@@ -18,7 +18,7 @@ const corsOptions = {
     origin: 'https://studyapp-dapa-98dcdc34bdde.herokuapp.com/',
 };
   
-  app.use(cors(corsOptions));
+app.use(cors(corsOptions));
 app.use(express.json())
 
 app.listen(PORT, () => console.log('api running'))
