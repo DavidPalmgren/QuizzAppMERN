@@ -1,12 +1,10 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import {
   Avatar,
   Button,
   Container,
   CssBaseline,
-  FormControlLabel,
-  Grid,
-  Link,
   TextField,
   Typography,
   MenuItem,
@@ -14,36 +12,34 @@ import {
 import NoteAddIcon from "@mui/icons-material/NoteAdd";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 
-
 const defaultTheme = createTheme();
 
 const CreateCard = () => {
   const [question, setQuestion] = useState("");
   const [answers, setAnswers] = useState(["", "", "", ""]);
   const [correctAnswerIndex, setCorrectAnswerIndex] = useState(0);
-  const [category, setCategory] = useState("History");
-  const [customCategory, setCustomCategory] = useState("");
-  const [categories, setCategories] = useState([]);
+  const [selectedDeckId, setSelectedDeckId] = useState("");
+  const [decks, setDecks] = useState([]);
   const [imageFile, setImageFile] = useState(null);
+  const { deckId } = useParams();
 
-  const fetchCategories = async () => {
+  const fetchDecks = async () => {
     try {
-      const response = await fetch("http://localhost:4040/api/categories");
+      const response = await fetch("http://localhost:4040/api/decks");
       if (response.ok) {
         const data = await response.json();
-        setCategories(data);
+        setDecks(data);
       } else {
-        console.error("Failed to fetch categories");
+        console.error("Failed to fetch decks");
       }
     } catch (error) {
-      console.error("Error fetching categories:", error);
+      console.error("Error fetching decks:", error);
     }
   };
 
   useEffect(() => {
-    fetchCategories();
+    fetchDecks();
   }, []);
-
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -63,40 +59,20 @@ const CreateCard = () => {
       formData.append("image", imageFile);
     }
 
-    // TODO: make post here later fix get route as well
-    if (category === "custom") {
-
-      try {
-        const categoryResponse = await fetch("http://localhost:4040/api/add-category", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ name: customCategory }),
-        });
-
-        if (categoryResponse.ok) {
-          formData.append("category", customCategory);
-        } else {
-          console.log("Something went wrong with creating the custom category");
-          return;
-        }
-      } catch (error) {
-        console.error("Error creating custom category:", error);
-        return;
-      }
-    } else {
-      formData.append("category", category);
-    }
+    // Include the selected deck ID in the form data
+    formData.append("deckId", selectedDeckId);
 
     try {
-      const response = await fetch("http://localhost:4040/api/add-card", {
+      const response = await fetch(`http://localhost:4040/api/add-card/${selectedDeckId}`, {
         method: "POST",
         body: formData,
       });
 
       if (response.ok) {
         console.log("New card added");
+        setAnswers(["", "", "", ""]);
+        setImageFile(null);
+        setQuestion("");
       } else {
         console.log("Something went wrong with adding card");
       }
@@ -178,28 +154,17 @@ const CreateCard = () => {
               margin="normal"
               select
               fullWidth
-              label="Card category"
-              id="category"
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
+              label="Select Deck"
+              id="deck"
+              value={selectedDeckId}
+              onChange={(e) => setSelectedDeckId(e.target.value)}
             >
-              {categories.map((cat) => (
-                <MenuItem key={cat._id} value={cat.name}>
-                  {cat.name}
+              {decks.map((deck) => (
+                <MenuItem key={deck._id} value={deck._id}>
+                  {deck.name}
                 </MenuItem>
               ))}
-              <MenuItem value="custom">(+) Add Category</MenuItem>
             </TextField>
-            {category === "custom" && (
-              <TextField
-                margin="normal"
-                fullWidth
-                label="Custom Category"
-                type="text"
-                value={customCategory}
-                onChange={(e) => setCustomCategory(e.target.value)}
-              />
-            )}
             <label style={{ color: "#ccc" }}>Upload Image (optional):</label>
             <input
               type="file"

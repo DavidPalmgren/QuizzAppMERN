@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import * as React from 'react';
 import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
 import TextField from '@mui/material/TextField';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Checkbox from '@mui/material/Checkbox';
 import Link from '@mui/material/Link';
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
@@ -11,53 +13,38 @@ import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 
-import { useNavigate } from 'react-router-dom';
-
 const defaultTheme = createTheme();
 
-export default function SignIn() {
-  const [formData, setFormData] = useState({
-    username: '',
-    password: '',
-  });
-  const navigate = useNavigate();
-
-  const handleChange = (event) => {
-    const { name, value } = event.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
-  };
-
+export default function SignUp() {
   const handleSubmit = async (event) => {
     event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const data = {
+      username: formData.get('username'),
+      email: formData.get('email'),
+      password: formData.get('password'),
+    };
 
     try {
-      const response = await fetch('http://localhost:4040/api/login', {
+      const response = await fetch('http://localhost:4040/api/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(data),
       });
 
       if (response.ok) {
         const result = await response.json();
-        const { token } = result;
-      
-        // sTore the token in localStorage for now
-        localStorage.setItem('token', token);
-        localStorage.setItem('username', formData.username) // not the best way to store username but otherwise it's reliant on the token which caused a bunch of problems leaving it like this untill i find a fix.
-        navigate('/createdeck');
-        // handle login TODO, show like login success or redirect to profile page etc
+        console.log('Registration successful:', result);
+        // You can handle success here, e.g., redirect to login page
       } else {
-        console.error('Login failed:', response.status);
-        // show failure message TODO
+        console.error('Registration failed:', response.status);
+        // Handle registration failure, e.g., show an error message
       }
     } catch (error) {
-      console.error('Error logging in:', error);
-      // show error message TODO
+      console.error('Error registering user:', error);
+      // Handle registration error, e.g., show an error message
     }
   };
 
@@ -81,7 +68,7 @@ export default function SignIn() {
             <LockOutlinedIcon />
           </Avatar>
           <Typography component="h1" variant="h5" color="primary">
-            Sign in
+            Sign Up
           </Typography>
           <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
             <TextField
@@ -93,8 +80,15 @@ export default function SignIn() {
               name="username"
               autoComplete="username"
               autoFocus
-              value={formData.username}
-              onChange={handleChange}
+            />
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              id="email"
+              label="Email Address"
+              name="email"
+              autoComplete="email"
             />
             <TextField
               margin="normal"
@@ -104,9 +98,12 @@ export default function SignIn() {
               label="Password"
               type="password"
               id="password"
-              autoComplete="current-password"
-              value={formData.password}
-              onChange={handleChange}
+              autoComplete="new-password"
+            />
+            <FormControlLabel
+              control={<Checkbox value="agreement" color="primary" />}
+              label="I agree to the terms and conditions"
+              sx={{ color: 'primary.main' }}
             />
             <Button
               type="submit"
@@ -114,7 +111,7 @@ export default function SignIn() {
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
             >
-              Sign In
+              Sign Up
             </Button>
             <Grid container>
               <Grid item xs>
@@ -123,8 +120,8 @@ export default function SignIn() {
                 </Link>
               </Grid>
               <Grid item>
-                <Link href="/sign-up" variant="body2">
-                  {"Don't have an account? Sign Up"}
+                <Link href="/login" variant="body2">
+                  Already have an account? Sign In
                 </Link>
               </Grid>
             </Grid>

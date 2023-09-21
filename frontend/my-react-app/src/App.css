@@ -36,3 +36,15 @@
     transform: rotate(360deg);
   }
 }
+
+.category-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.question-card {
+  padding: 24px; /* Adjust the padding as needed */
+  background-color: #f0f0f0; /* Change the background color as needed */
+  border-radius: 8px; /* Add rounded corners */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}

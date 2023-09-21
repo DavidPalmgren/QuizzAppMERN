@@ -13,10 +13,13 @@ function Navbar() {
         <Typography variant="h6" component={Link} to="/" style={{ textDecoration: 'none', color: 'white' }}>
           StudyBuddy
         </Typography>
-        <TextField id="outlined-basic" label="Search for catalogs, flashcards etc.." variant="filled" size="small" fullWidth style={{marginLeft: "20px", marginRight: "20px", color: "white"}} />
+        
         <div style={{ flexGrow: 1 }}></div>
         <Button color="inherit" component={Link} to="/">
           Home
+        </Button>
+        <Button color="inherit" component={Link} to="/categories">
+          Categories
         </Button>
         <Button color="inherit" component={Link} to="/about">
           About
@@ -27,8 +30,11 @@ function Navbar() {
         <Button color="inherit" component={Link} to="/contact">
           Contact
         </Button>
-        <Button color="inherit" component={Link} to="/createcard">
-          Create
+        <Button color="inherit" component={Link} to="/createdeck">
+          Create Deck
+        </Button>
+        <Button color="inherit" component={Link} to="/create-cardv2/:deckId">
+          createcardv2
         </Button>
       </Toolbar>
     </AppBar>

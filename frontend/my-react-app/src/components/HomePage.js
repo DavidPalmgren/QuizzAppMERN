@@ -4,34 +4,34 @@ const ProdUrl = 'https://studyapp-dapa-98dcdc34bdde.herokuapp.com/api/cards';
 const LocalUrl = 'http://localhost:4040/api/cards'
 
 function HomePage() {
-  const [cards, setCards] = useState([]);
+  const [decks, setDecks] = useState([]);
+
+  const fetchDecks = async () => {
+    try {
+      const response = await fetch('http://localhost:4040/api/decks')
+      if (response.ok) {
+        const data = await response.json();
+        setDecks(data);
+      } else {
+        console.error("Failed to fetch categories");
+      }
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    }
+  }
 
   useEffect(() => {
-    async function fetchData() {
-      try {
-        const response = await fetch(LocalUrl);
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-
-        const data = await response.json();
-        console.log('API Response:', data);
-        setCards(data);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    }
-
-    fetchData();
+    fetchDecks();
   }, []);
 
   return (
     <div className="centerA">
       <h1>Welcome to My Landing Page</h1>
       <ul>
-        {cards.length === 0 ? <li>No cards available</li> : cards.map((card) => (
-          <li key={card._id}>{card.name}</li>
+        {decks.map((deck) => (
+          <li key={deck._id} value={deck.name}>{deck.name} {deck.category}</li>
         ))}
+
       </ul>
     </div>
   );

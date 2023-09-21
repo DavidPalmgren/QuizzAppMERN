@@ -1,14 +1,24 @@
 const express = require('express');
+const multer = require('multer');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
 const path = require('path');
 require('dotenv').config();
 const { MongoClient } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const cors = require('cors');
 const app = express()
+const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN;
 
-const URI = process.env.MONGO_URI
-const client = new MongoClient(URI)
-const database = client.db('main')
-const cards = database.collection('cards')
+const URI = process.env.MONGO_URI;
+const client = new MongoClient(URI);
+const database = client.db('main');
+
+const cards = database.collection('cards');
+const categories = database.collection('categories');
+const decks = database.collection('decks');
+const users = database.collection('users');
 
 client.connect()
 console.log('connected to mongodb')
@@ -23,7 +33,7 @@ console.log("running");
 // platform access remember to change to real address for production
 const corsOptions = {
   origin: 'http://localhost:3000',
-  methods: 'GET,POST',
+  methods: 'GET,POST,DELETE',
 };
 
 app.use(cors(corsOptions));
@@ -33,23 +43,292 @@ app.use(express.json())
 
 app.listen(PORT, () => console.log('api running'))
 
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/');
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + '-' + file.originalname);
+  },
+});
+
+const upload = multer({ storage });
+
+app.post('/api/register', async (req, res) => {
+  const { username, email, password } = req.body;
+
+  try {
+    const existingUser = await users.findOne({ username });
+    const existingEmail = await users.findOne({ email });
+
+    if (existingUser) {
+      return res.status(400).json({ message: 'Username already exists' });
+    }
+    if (existingEmail) {
+      return res.status(400).json({ message: 'Email already exists' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    await users.insertOne({ username, email, password: hashedPassword });
+
+    const token = jwt.sign({ username }, JWT_SECRET, {
+      expiresIn: JWT_EXPIRES_IN,
+    });
+
+    res.status(201).json({ message: 'Registration successful', token });
+  } catch (error) {
+    console.error('Error registering user:', error);
+    res.status(500).json({ message: 'Error registering user' });
+  }
+});
+
+app.post('/api/login', async (req, res) => {
+  const { username, password } = req.body;
+
+  try {
+    const user = await users.findOne({ username });
+
+    if (!user) {
+      return res.status(401).json({ message: 'Authentication failed' });
+    }
+
+    // Compare the provided password with the stored hashed password
+    const passwordMatch = await bcrypt.compare(password, user.password);
+
+    if (!passwordMatch) {
+      return res.status(401).json({ message: 'Authentication failed' });
+    }
+
+    const token = jwt.sign({ username }, JWT_SECRET, {
+      expiresIn: JWT_EXPIRES_IN,
+    });
+
+    res.json({ message: 'Login successful', token });
+  } catch (error) {
+    console.error('Error authenticating user:', error);
+    res.status(500).json({ message: 'Error authenticating user' });
+  }
+});
+
 app.get('/api/cards', async (req, res) => {
   const allCards = await cards.find().toArray();
-  const formattedJson = JSON.stringify(allCards, null, 2); // Indent with 2 spaces
+  const formattedJson = JSON.stringify(allCards, null, 2); // indentation level
   res.header('Content-Type', 'application/json');
   res.send(formattedJson);
 });
 
-app.post('/api/add-card', async (req, res) => {
-    const { answer, description, category } = req.body;
-  
-    try {
-      const result = await cards.insertOne({ answer, description, category });
-      res.status(201).json({ message: 'Item was added', insertedId: result.insertedId });
-    } catch (error) {
-      console.error('Error adding item:', error);
-      res.status(500).json({ message: 'Error adding item' });
+app.post('/api/add-card', upload.single('image'), async (req, res) => {
+  const { question, answers, correctAnswerIndex, category, creator } = req.body;
+  let image = null;
+
+  const correctIndex = parseInt(correctAnswerIndex, 10);
+
+  if (req.file) {
+    image = req.file;
+  }
+
+  try {
+    // dynamically checking if the answer is correct if correct true
+    const formattedAnswers = answers.map((text, index) => ({
+      text,
+      isCorrect: index === correctIndex,
+    }));
+
+
+    const card = {
+      question,
+      answers: formattedAnswers,
+      category,
+      creator,
+    };
+
+    if (image) {
+      card.image = image;
     }
+
+    const result = await cards.insertOne(card);
+
+    res.status(201).json({ message: 'Item was added', insertedId: result.insertedId });
+  } catch (error) {
+    console.error('Error adding item:', error);
+    res.status(500).json({ message: 'Error adding item' });
+  }
+});
+
+app.get('/api/categories', async (req, res) => {
+  const allCategories = await categories.find().toArray();
+  const formattedJson = JSON.stringify(allCategories, null, 2); // Indenting with 2 spaces
+  res.header('Content-Type', 'application/json');
+  res.send(formattedJson);
+})
+
+app.get('/api/decks/:category', async (req, res) => {
+  const category = req.params.category;
+
+  try {
+    const matchingDecks = await decks.find({ category }).toArray();
+    const formattedJson = JSON.stringify(matchingDecks, null, 2);
+    res.header('Content-Type', 'application/json');
+    res.send(formattedJson);
+  } catch (error) {
+    console.error('Error fetching decks:', error);
+    res.status(500).json({ message: 'Error fetching decks', error });
+  }
+});
+
+app.post('/api/add-category', async (req, res) => {
+  const { name } = req.body;
+
+  try {
+    // Check if the category already exists
+    const existingCategory = await categories.findOne({ name });
+
+    if (existingCategory) {
+      res.status(400).json({ message: 'Category already exists' });
+      return;
+    }
+
+    const result = await categories.insertOne({ name });
+
+    res.status(201).json({ message: 'Custom category created', insertedId: result.insertedId });
+  } catch (error) {
+    console.error('Error creating custom category:', error);
+    res.status(500).json({ message: 'Error creating custom category' });
+  }
+});
+
+app.get('/api/decks', async (req, res) => {
+  const allDecks = await decks.find().toArray();
+  const formattedJson = JSON.stringify(allDecks, null, 2);
+  res.header('Content-Type', 'application/json');
+  res.send(formattedJson);
+})
+
+app.get('/api/personal-decks', async (req, res) => {
+  const author = req.query.author; // username from the query parameter **
+
+  try {
+    // Fetch decks that match the author's username depending on how performance works with this i might have to change my approach since going through every single deck doesnt seem very efficient
+    // Might try an approach where i simply make the decks children of the user account, and all decks are private by default untill they're published to the public deck schema
+    const userDecks = await decks.find({ author }).toArray();
+    res.json(userDecks);
+  } catch (error) {
+    console.error('Error fetching decks:', error);
+    res.status(500).json({ message: 'Error fetching decks' });
+  }
+});
+
+app.post('/api/add-decks', async (req, res) => {
+  const { name, cards, category } = req.body;
+
+  const token = req.headers.authorization.split(' ')[1]; // fix
+
+  try {
+    // Verify and decode the JWT token to get the username
+    const tokenData = jwt.verify(token, JWT_SECRET);
+    const author = tokenData.username;
+
+    const result = await decks.insertOne({ name, cards, category, author });
+    const newDeckData = {
+      _id: result.insertedId,
+      name,
+      cards: [],
+      category,
+      author,
+    };
+    res.status(201).json(newDeckData); // Send back the new deck data
+  } catch (error) {
+    console.error('Error creating deck:', error);
+    res.status(500).json({ message: 'Error creating deck', error });
+  }
+});
+
+app.delete('/api/decks/delete/:deckId', async (req, res) => {
+  const deckId = req.params.deckId;
+
+  try {
+    const deletedDeck = await decks.deleteOne({ _id: new ObjectId(deckId) });
+
+    if (!deletedDeck) {
+      return res.status(404).json({ message: `Deck with ID ${deckId} not found` });
+    }
+
+    res.status(200).json({ message: `Deck with ID ${deckId} deleted successfully` });
+  } catch (error) {
+    console.error('Error deleting deck:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+app.post('/api/add-card/:deckId', upload.single('image'), async (req, res) => {
+  const { question, answers, correctAnswerIndex, category, creator } = req.body;
+  const deckId = req.params.deckId;
+  let image = null;
+
+  const correctIndex = parseInt(correctAnswerIndex, 10);
+
+  if (req.file) {
+    image = req.file;
+  }
+
+  try {
+    const formattedAnswers = answers.map((text, index) => ({
+      text,
+      isCorrect: index === correctIndex,
+    }));
+
+    const card = {
+      question,
+      answers: formattedAnswers,
+      category,
+      creator,
+    };
+
+    if (image) {
+      card.image = image;
+    }
+
+    const existingDeck = await decks.findOne({ _id: new ObjectId(deckId) });
+
+    if (!existingDeck) {
+      return res.status(404).json({ message: `Deck with ID ${deckId} not found` });
+    }
+
+    if (!existingDeck.cards) {
+      existingDeck.cards = [];
+    }
+
+    existingDeck.cards.push(card);
+
+    const result = await decks.replaceOne({ _id: new ObjectId(deckId) }, existingDeck);
+
+    if (result.modifiedCount === 1) {
+      res.status(201).json({ message: 'Card was added to the deck' });
+    } else {
+      res.status(404).json({ message: `Deck with ID ${deckId} not found` });
+    }
+  } catch (error) {
+    console.error('Error adding card to deck:', error);
+    res.status(500).json({ message: 'Error adding card to deck', error });
+  }
+});
+
+app.get('/api/decks/:deckId/cards', async (req, res) => {
+  const deckId = req.params.deckId;
+
+  try {
+    const deck = await decks.findOne({ _id: new ObjectId(deckId) });
+
+    if (!deck) {
+      return res.status(404).json({ message: `Deck with ID ${deckId} not found` });
+    }
+
+    res.json(deck.cards);
+  } catch (error) {
+    console.error('Error fetching cards from deck:', error);
+    res.status(500).json({ message: 'Error fetching cards from deck', error });
+  }
 });
 
 app.get('*', (req, res) => {

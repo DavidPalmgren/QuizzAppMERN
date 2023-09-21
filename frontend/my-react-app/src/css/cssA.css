@@ -4,3 +4,46 @@
     margin: auto;
     margin-top: 64px;
 }
+
+.question-card {
+    padding: 24px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    height: 400px;
+    width: 100%;
+    text-align: center;
+    margin: 0 auto;
+    margin-bottom: 16px;
+    position: relative;
+}
+
+.center-text {
+    margin: 0;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.pseudo-card {
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    margin: 0 auto;
+    margin-bottom: 16px;
+    margin-top: 16px;
+    background-color: #fff;
+    color: #ccc;
+}
+
+.question-card-button {
+    color: rgb(40, 37, 37);
+    padding: 24px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    height: 400px;
+    width: 100%;
+    text-align: center;
+    margin: 0 auto;
+    margin-bottom: 16px;
+    position: relative;
+}

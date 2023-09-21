@@ -9,6 +9,13 @@ import About from './components/About';
 import Login from './view/Login';
 import Contact from './view/Contact'
 import CreateCard from './view/CreateCard';
+import CreateCardv2 from './view/CreateCardv2';
+import CreateDeck from './view/CreateDeck';
+import QuizGame from './view/Game';
+import Categories from './view/Categories';
+import Decks from './view/Decks';
+import SignUp from './view/SignUp';
+
 
 function App() {
   return (
@@ -16,10 +23,16 @@ function App() {
       <Layout>
         <Routes>
           <Route path="/" element={<HomePage />} />
+          <Route path="/categories" element={<Categories/>} />
           <Route path="/about" element={<About/>} />
           <Route path="/login" element={<Login/>} />
           <Route path="/contact" element={<Contact/>} />
           <Route path="/createcard" element={<CreateCard/>} />
+          <Route path="/create-cardv2/:deckId" element={<CreateCardv2/>} />
+          <Route path="/createdeck" element={<CreateDeck/>} />
+          <Route path="/decks/:categoryName" element={<Decks/>} />
+          <Route path="/quizgame/:deckId" element={<QuizGame/>} />
+          <Route path="/sign-up" element={<SignUp/>} />
         </Routes>
       </Layout>
     </Router>
