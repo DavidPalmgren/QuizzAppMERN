@@ -34,7 +34,7 @@ export default function SignIn() {
     event.preventDefault();
 
     try {
-      const response = await fetch('http://localhost:4040/api/login', {
+      const response = await fetch('https://studyapp-dapa-98dcdc34bdde.herokuapp.com/api/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

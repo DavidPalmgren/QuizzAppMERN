@@ -11,7 +11,7 @@ function Decks() {
 
   const fetchDecks = async () => {
     try {
-      const response = await fetch(`http://localhost:4040/api/decks/${categoryName}`);
+      const response = await fetch(`https://studyapp-dapa-98dcdc34bdde.herokuapp.com/api/decks/${categoryName}`);
       if (response.ok) {
         const data = await response.json();
         setDecks(data);

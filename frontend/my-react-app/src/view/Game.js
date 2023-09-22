@@ -21,7 +21,7 @@ const QuizGame = () => {
   useEffect(() => {
     const fetchCards = async () => {
       try {
-        const response = await fetch(`http://localhost:4040/api/decks/${deckId}/cards`);
+        const response = await fetch(`https://studyapp-dapa-98dcdc34bdde.herokuapp.com/api/decks/${deckId}/cards`);
         if (response.ok) {
           const data = await response.json();
           setCards(data);

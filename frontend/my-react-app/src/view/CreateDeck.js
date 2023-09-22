@@ -36,7 +36,7 @@ const CreateDeck = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch("http://localhost:4040/api/categories");
+      const response = await fetch("https://studyapp-dapa-98dcdc34bdde.herokuapp.com/api/categories");
       if (response.ok) {
         const data = await response.json();
         setCategories(data);
@@ -55,7 +55,7 @@ const CreateDeck = () => {
     }
 
     try {
-      const response = await fetch("http://localhost:4040/api/add-decks", {
+      const response = await fetch("https://studyapp-dapa-98dcdc34bdde.herokuapp.com/api/add-decks", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -93,7 +93,7 @@ const CreateDeck = () => {
 
   const fetchDecks = async (username) => {
     try {
-      const response = await fetch(`http://localhost:4040/api/personal-decks?author=${username}`);
+      const response = await fetch(`https://studyapp-dapa-98dcdc34bdde.herokuapp.com/api/personal-decks?author=${username}`);
       if (response.ok) {
         const data = await response.json();
         setDecks(data);
@@ -119,7 +119,7 @@ const CreateDeck = () => {
     const confirmDelete = window.confirm("Are you sure you want to delete this deck?");
     
     if (confirmDelete) {
-      fetch(`http://localhost:4040/api/decks/delete/${deckId}`, {
+      fetch(`https://studyapp-dapa-98dcdc34bdde.herokuapp.com/api/decks/delete/${deckId}`, {
         method: "DELETE",
       })
         .then((response) => {

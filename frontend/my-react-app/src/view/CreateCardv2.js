@@ -25,7 +25,7 @@ const CreateCard = () => {
 
   const fetchDecks = async () => {
     try {
-      const response = await fetch("http://localhost:4040/api/decks");
+      const response = await fetch("https://studyapp-dapa-98dcdc34bdde.herokuapp.com/api/decks");
       if (response.ok) {
         const data = await response.json();
         setDecks(data);
@@ -63,7 +63,7 @@ const CreateCard = () => {
     formData.append("deckId", selectedDeckId);
 
     try {
-      const response = await fetch(`http://localhost:4040/api/add-card/${selectedDeckId}`, {
+      const response = await fetch(`https://studyapp-dapa-98dcdc34bdde.herokuapp.com/api/add-card/${selectedDeckId}`, {
         method: "POST",
         body: formData,
       });

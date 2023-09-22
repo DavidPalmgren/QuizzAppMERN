@@ -28,7 +28,7 @@ const CreateCard = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch("http://localhost:4040/api/categories");
+      const response = await fetch("https://studyapp-dapa-98dcdc34bdde.herokuapp.com/api/categories");
       if (response.ok) {
         const data = await response.json();
         setCategories(data);
