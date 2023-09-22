@@ -87,6 +87,38 @@ const QuizGame = () => {
     setMode('learning');
   };
 
+  const goToNextCard = () => {
+    if (currentIndex < cards.length - 1) {
+        setCurrentIndex(currentIndex + 1)
+    }
+  };
+
+  const goToPreviousCard = () => {
+    if (currentIndex > 0) {
+        setCurrentIndex(currentIndex - 1)
+    }
+  };
+
+  const onExactAnswerClick = (correct) => {
+    if (cards === null) {
+        navigate(`/create-cardv2/${deckId}`);
+        return;
+      }
+    
+      if (correct) {
+        setScore(score + 1);
+      }
+  
+      setTimeout(() => {
+        if (currentIndex < cards.length - 1) {
+          setCurrentIndex(currentIndex + 1);
+        } else {
+          setShowResult(true);
+        }
+      }, 1000);
+    };
+
+
   return (
     <Container>
       <CardContent className='pseudo-card'>
@@ -132,6 +164,8 @@ const QuizGame = () => {
                   onAnswerClick={handleAnswerClick}
                   answerStatus={answerStatus}
                   resetAnswerStatus={resetAnswerStatus}
+                  score={score}
+                  cards={cards}
                 />
               )}
               {mode === 'exactMatch' && (
@@ -139,22 +173,21 @@ const QuizGame = () => {
                   card={cards[currentIndex]}
                   onAnswerClick={handleAnswerClick}
                   answerStatus={answerStatus}
+                  onExactAnswerClick={onExactAnswerClick}
                   resetAnswerStatus={resetAnswerStatus}
+                  score={score}
+                  cards={cards}
                 />
               )}
               {mode === 'learning' && (
                 <LearningMode
                   card={cards[currentIndex]}
-                  onNextCard={() => {
-                    // Logic to show the next card in learning mode
-                  }}
+                  onNextCard={goToNextCard}
+                  onPreviousCard={goToPreviousCard}
+                  cards={cards}
+                  currentIndex={currentIndex}
                 />
               )}
-            <Paper elevation={3} style={{ padding: '16px', marginTop: '16px' }}>
-              <Typography variant="h6" gutterBottom>
-                Score: {score} / {cards.length}
-              </Typography>
-            </Paper>
           </>
         ) : (
           <Typography>Loading...</Typography>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, Typography, Button, Grid } from '@mui/material';
+import { Card, CardContent, Typography, Button, Grid, Paper } from '@mui/material';
 
-const QuestionCard = ({ card, onAnswerClick, answerStatus, resetAnswerStatus }) => {
+const QuestionCard = ({ card, onAnswerClick, answerStatus, resetAnswerStatus, score, cards }) => {
   const [timeoutActive, setTimeoutActive] = useState(false);
 
   useEffect(() => {
@@ -50,6 +50,11 @@ const QuestionCard = ({ card, onAnswerClick, answerStatus, resetAnswerStatus }) 
           ))}
         </Grid>
       </CardContent>
+      <Paper elevation={3} style={{ padding: '16px', marginTop: '16px' }}>
+              <Typography variant="h6" gutterBottom>
+                Score: {score} / {cards.length}
+              </Typography>
+            </Paper>
     </Card>
   );
 };
