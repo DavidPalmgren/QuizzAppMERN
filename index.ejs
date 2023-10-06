@@ -17,6 +17,7 @@ const database = client.db('main');
 
 const cards = database.collection('cards');
 const categories = database.collection('categories');
+const courses = database.collection('courses');
 const decks = database.collection('decks');
 const users = database.collection('users');
 
@@ -37,7 +38,6 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-
 app.use(express.static(path.join(__dirname, 'frontend/my-react-app/build')));
 app.use(express.json())
 
@@ -53,7 +53,7 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage });
-
+// POST USER BASICALLY
 app.post('/api/register', async (req, res) => {
   const { username, email, password } = req.body;
 
@@ -83,6 +83,146 @@ app.post('/api/register', async (req, res) => {
   }
 });
 
+app.get('/api/user', async (req, res) => {
+  const token = req.headers.authorization;
+
+  if (!token) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+
+  try {
+    const decodedToken = jwt.verify(token, JWT_SECRET);
+
+    if (!decodedToken.username) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    const username = decodedToken.username;
+    const user = await users.findOne({ username });
+    res.status(200).json(user)
+  } catch (error) {
+    console.error('Error fetching username', error)
+    res.status(500).json({ message: 'Internal server error' });
+  }
+})
+
+app.get('/api/user/:userName', async (req, res) => {
+  const username = req.params.userName;
+
+  try {
+    const user = await users.findOne({ username });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    delete user.password; //for safety!
+
+    res.status(200).json(user)
+  } catch (error) {
+    console.error('Error fetching username', error)
+    res.status(500).json({ message: 'Internal server error' });
+  }
+})
+
+app.get('/api/user-progress', async (req, res) => {
+  const token = req.headers.authorization;
+
+  if (!token) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+
+  try {
+    const decodedToken = jwt.verify(token, JWT_SECRET);
+
+    if (!decodedToken.username) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    const username = decodedToken.username;
+    const userProgressData = await users.findOne({ username }, { progress: 1 });
+
+    if (userProgressData) {
+      res.status(200).json(userProgressData.progress); // Return only the progress array
+    } else {
+      res.status(404).json({ message: 'User progress data not found' });
+    }
+  } catch (error) {
+    console.error('Error fetching user progress data:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+// all of these kind of a mess, cause it's checking if the thing exists to make it backwards compatible with the data structure i had before
+app.post('/api/deck/add-comment/:deckId', async (req, res) => {
+  const { deckId } = req.params;
+  const { comment, rating, username } = req.body;
+
+  try {
+    const deck = await database.collection('decks').findOne({ _id: new ObjectId(deckId) });
+
+    if (!deck) {
+      return res.status(404).json({ message: 'Deck not found' });
+    }
+
+    if (!deck.comments) {
+      deck.comments = [];
+    }
+
+    if (!deck.ratings) {
+      deck.ratings = [];
+    }
+
+    const newComment = {
+      text: comment,
+      rating: rating,
+      username: username,
+    };
+
+    deck.comments.push(newComment);
+    deck.ratings.push(rating);
+
+    const averageRating =
+      deck.ratings.reduce((acc, curr) => acc + curr, 0) / deck.ratings.length;
+
+    await database.collection('decks').updateOne(
+      { _id: new ObjectId(deckId) },
+      {
+        $set: {
+          comments: deck.comments,
+          ratings: deck.ratings,
+          averageRating: averageRating,
+        },
+      }
+    );
+
+    res.status(200).json({
+      message: 'Comment added successfully',
+      averageRating,
+    });
+  } catch (error) {
+    console.error('Error adding comment:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+app.get('/api/decks/get-comments/:deckId', async (req, res) => {
+  const { deckId } = req.params;
+
+  try {
+    const deck = await database.collection('decks').findOne({ _id: new ObjectId(deckId) });
+
+    if (!deck) {
+      return res.status(404).json({ message: 'Deck not found' });
+    }
+
+    const comments = deck.comments || [];
+
+    res.status(200).json(comments)
+
+  } catch (error) {
+    console.error('imlazy')
+  }
+});
+
+
 app.post('/api/login', async (req, res) => {
   const { username, password } = req.body;
 
@@ -111,6 +251,110 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
+app.get('/api/decks/:deckId/cards', async (req, res) => {
+  const deckId = req.params.deckId;
+
+  try {
+    const deck = await decks.findOne({ _id: new ObjectId(deckId) });
+
+    if (!deck) {
+      return res.status(404).json({ message: `Deck with ID ${deckId} not found` });
+    }
+
+    res.json(deck.cards);
+  } catch (error) {
+    console.error('Error fetching cards from deck:', error);
+    res.status(500).json({ message: 'Error fetching cards from deck', error });
+  }
+});
+
+app.get('/api/users', async (req, res) => {
+  const allUsers = await users.find().toArray();
+  const formattedJson = JSON.stringify(allUsers, null, 2);
+  res.header('Content-Type', 'application/json');
+  res.send(formattedJson);
+});
+// HUGE F*CKING MESS DONT TOUCH IF U CAN HELP IT
+app.post('/api/record-study-session', async (req, res) => {
+  const { username, timeSpent, correctAnswers, totalAnswers, cardData } = req.body;
+
+  try {
+    const user = await users.findOne({ username: username });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Update user statistics
+    await users.updateOne(
+      { username: username },
+      {
+        $inc: {
+          totalTimeStudied: timeSpent,
+          totalCorrectAnswers: correctAnswers,
+          totalCardsAnswered: totalAnswers,
+        },
+      }
+    );
+
+for (const card of cardData) {
+  const { cardId, answeredCorrectly, masteryRating } = card; //just leave for later
+  const existingProgress = user.progress ? user.progress.find((progress) => progress.cardId === cardId) : null;
+
+  if (existingProgress) {
+    if (answeredCorrectly) {
+      // If answered correctly, increment masteryRating by 0.5, but not exceeding 3
+      const newMasteryRating = Math.min(existingProgress.masteryRating + 0.5, 3);
+      await users.updateOne(
+        { username: username, 'progress.cardId': cardId },
+        {
+          $set: {
+            'progress.$.answeredCorrectly': answeredCorrectly,
+            'progress.$.masteryRating': newMasteryRating,
+          },
+        }
+      );
+    } else {
+      // If answered incorrectly, decrease masteryRating by 1, but not going below 0
+      const newMasteryRating = Math.max(existingProgress.masteryRating - 1, 0);
+      await users.updateOne(
+        { username: username, 'progress.cardId': cardId },
+        {
+          $set: {
+            'progress.$.answeredCorrectly': false,
+            'progress.$.masteryRating': newMasteryRating,
+          },
+        }
+      );
+    }
+  } else {
+    // Add new progress if it doesn't exist
+    await users.updateOne(
+      { username: username },
+      {
+        $push: {
+          progress: {
+            cardId: cardId,
+            answeredCorrectly: answeredCorrectly,
+            masteryRating: answeredCorrectly ? 0.5 : 0,
+          },
+        },
+      }
+    );
+  }
+}
+
+
+    res.status(200).json({ message: 'User statistics and card data updated successfully' });
+  } catch (error) {
+    console.error('Error updating user statistics and card data:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+
+
+
 app.get('/api/cards', async (req, res) => {
   const allCards = await cards.find().toArray();
   const formattedJson = JSON.stringify(allCards, null, 2); // indentation level
@@ -118,8 +362,10 @@ app.get('/api/cards', async (req, res) => {
   res.send(formattedJson);
 });
 
+
+// FOR TESTING PURPOSES ONLY
 app.post('/api/add-card', upload.single('image'), async (req, res) => {
-  const { question, answers, correctAnswerIndex, category, creator } = req.body;
+  const { question, answers, correctAnswerIndex, category, creator, isMultipleChoice } = req.body;
   let image = null;
 
   const correctIndex = parseInt(correctAnswerIndex, 10);
@@ -138,6 +384,7 @@ app.post('/api/add-card', upload.single('image'), async (req, res) => {
 
     const card = {
       question,
+      isMultipleChoice,
       answers: formattedAnswers,
       category,
       creator,
@@ -161,7 +408,7 @@ app.get('/api/categories', async (req, res) => {
   const formattedJson = JSON.stringify(allCategories, null, 2); // Indenting with 2 spaces
   res.header('Content-Type', 'application/json');
   res.send(formattedJson);
-})
+});
 
 app.get('/api/decks/:category', async (req, res) => {
   const category = req.params.category;
@@ -198,6 +445,139 @@ app.post('/api/add-category', async (req, res) => {
   }
 });
 
+app.get('/api/categories/:categoryName/courses', async (req, res) => {
+  const categoryName = req.params.categoryName;
+
+  try {
+    const matchingCourses = await courses.find({ category: categoryName }).toArray();
+
+    res.status(200).json(matchingCourses);
+  } catch (error) {
+    console.error('Error fetching courses for category:', error);
+    res.status(500).json({ message: 'Error fetching courses for category', error });
+  }
+});
+
+app.get('/api/categories/:categoryName/:courseName', async (req, res) => {
+  const categoryName = req.params.categoryName;
+  const courseName = req.params.courseName;
+
+  try {
+    const matchingCourses = await courses.find({ category: categoryName, name: courseName }).toArray();
+
+    res.status(200).json(matchingCourses);
+  } catch (error) {
+    console.error('Error fetching courses for category and name:', error);
+    res.status(500).json({ message: 'Error fetching courses for category and name', error });
+  }
+});
+
+app.get('/api/decks/:categoryName/:courseName', async (req, res) => {
+  const categoryName = req.params.categoryName;
+  const courseName = req.params.courseName;
+
+  try {
+    const matchingCourses = await decks.find({ category: categoryName, course: courseName }).toArray();
+
+    res.status(200).json(matchingCourses);
+  } catch (error) {
+    console.error('Error fetching courses for category and name:', error);
+    res.status(500).json({ message: 'Error fetching courses for category and name', error });
+  }
+})
+
+app.post('/api/categories/:categoryName/courses', async (req, res) => {
+  const { name } = req.body;
+  const categoryName = req.params.categoryName;
+
+  try {
+    const existingCategory = await categories.findOne({ name: categoryName });
+
+    if (!existingCategory) {
+      return res.status(404).json({ message: `Category ${categoryName} not found` });
+    }
+
+    const result = await courses.insertOne({ name, category: categoryName });
+    const newCourseData = {
+      _id: result.insertedId,
+      name,
+      category: categoryName,
+    };
+    res.status(201).json(newCourseData);
+  } catch (error) {
+    console.error('Error creating course:', error);
+    res.status(500).json({ message: 'Error creating course', error });
+  }
+});
+// POST BACKEND
+app.post('/api/add-course', async (req, res) => {
+  const { name, category } = req.body;
+
+  try {
+    const courseExists = await courses.findOne({ name })
+
+    if (courseExists) {
+      return res.status(404).json({ message: `Course name already exists!` })
+    }
+
+    const result = await courses.insertOne({ name, category });
+    const newCourseData = {
+      _id: result.insertedId,
+      name,
+      category,
+    };
+    res.status(201).json(newCourseData);
+  } catch (error) {
+    console.error("Error creating course", error);
+    res.status(500).json({ message: 'Error creating coruse', error })
+  }
+
+});
+
+// POST COURSES FRONTEND
+app.post('/api/categories/:categoryId/add-courses', async (req, res) => {
+  const { name } = req.body;
+  const categoryId = req.params.categoryId;
+
+  try {
+    const category = await categories.findOne({ _id: new ObjectId(categoryId) });
+
+    if (!category) {
+      return res.status(404).json({ message: `Category with ID ${categoryId} not found` });
+    }
+
+    const existingCourse = await courses.findOne({ name, categoryId });
+
+    if (existingCourse) {
+      res.status(400).json({ message: 'Course already exists in this category' });
+      return;
+    }
+
+    const result = await courses.insertOne({ name, categoryId });
+    const newCourseData = {
+      _id: result.insertedId,
+      name,
+      categoryId,
+    };
+    res.status(201).json(newCourseData);
+  } catch (error) {
+    console.error('Error creating course:', error);
+    res.status(500).json({ message: 'Error creating course', error });
+  }
+});
+
+app.get('/api/courses', async (req, res) => {
+  try {
+    const allCourses = await courses.find().toArray();
+    const formattedJson = JSON.stringify(allCourses, null, 2);
+    res.header('Content-Type', 'application/json');
+    res.send(formattedJson);
+  } catch (error) {
+    console.error('Error fetching courses:', error);
+    res.status(500).json({ message: 'Error fetching courses', error });
+  }
+});
+
 app.get('/api/decks', async (req, res) => {
   const allDecks = await decks.find().toArray();
   const formattedJson = JSON.stringify(allDecks, null, 2);
@@ -220,21 +600,28 @@ app.get('/api/personal-decks', async (req, res) => {
 });
 
 app.post('/api/add-decks', async (req, res) => {
-  const { name, cards, category } = req.body;
+  const { name, cards, category, course } = req.body;
 
   const token = req.headers.authorization.split(' ')[1]; // fix
 
   try {
-    // Verify and decode the JWT token to get the username
+    const existingCategory = await categories.findOne({ name: category });
+    const existingSubject = await courses.findOne({ name: course });
+
+    if (!existingCategory || !existingSubject) {
+      return res.status(400).json({ message: 'Category or course not found' });
+    }
+
     const tokenData = jwt.verify(token, JWT_SECRET);
     const author = tokenData.username;
 
-    const result = await decks.insertOne({ name, cards, category, author });
+    const result = await decks.insertOne({ name, cards, category, course, author });
     const newDeckData = {
       _id: result.insertedId,
       name,
       cards: [],
       category,
+      course,
       author,
     };
     res.status(201).json(newDeckData); // Send back the new deck data
@@ -260,9 +647,10 @@ app.delete('/api/decks/delete/:deckId', async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 });
-
+// IN USE ADD-CARD
+// OLD EXISTING DECK IS RELIC CAN BE REMOVEDD, NOT PROBLEM THO
 app.post('/api/add-card/:deckId', upload.single('image'), async (req, res) => {
-  const { question, answers, correctAnswerIndex, category, creator } = req.body;
+  const { question, isMultipleChoice, answers, correctAnswerIndex, category, creator } = req.body;
   const deckId = req.params.deckId;
   let image = null;
 
@@ -271,15 +659,19 @@ app.post('/api/add-card/:deckId', upload.single('image'), async (req, res) => {
   if (req.file) {
     image = req.file;
   }
-
+  // Convert all answers to lowercase fix
   try {
     const formattedAnswers = answers.map((text, index) => ({
-      text,
+      text: text.toLowerCase(),
       isCorrect: index === correctIndex,
     }));
 
+    const cardId = new ObjectId();
+
     const card = {
+      _id: cardId,
       question,
+      isMultipleChoice,
       answers: formattedAnswers,
       category,
       creator,
@@ -314,23 +706,8 @@ app.post('/api/add-card/:deckId', upload.single('image'), async (req, res) => {
   }
 });
 
-app.get('/api/decks/:deckId/cards', async (req, res) => {
-  const deckId = req.params.deckId;
 
-  try {
-    const deck = await decks.findOne({ _id: new ObjectId(deckId) });
-
-    if (!deck) {
-      return res.status(404).json({ message: `Deck with ID ${deckId} not found` });
-    }
-
-    res.json(deck.cards);
-  } catch (error) {
-    console.error('Error fetching cards from deck:', error);
-    res.status(500).json({ message: 'Error fetching cards from deck', error });
-  }
-});
 
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'frontend/my-react-app/build', 'index.html'));
+  res.sendFile(path.join(__dirname, 'frontend/my-react-app/build', 'index.html'));
 });

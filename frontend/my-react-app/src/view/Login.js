@@ -50,7 +50,6 @@ export default function SignIn() {
         localStorage.setItem('token', token);
         localStorage.setItem('username', formData.username) // not the best way to store username but otherwise it's reliant on the token which caused a bunch of problems leaving it like this untill i find a fix.
         navigate('/createdeck');
-        // handle login TODO, show like login success or redirect to profile page etc
       } else {
         console.error('Login failed:', response.status);
         // show failure message TODO

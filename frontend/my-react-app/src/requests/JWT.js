@@ -10,7 +10,6 @@ export const useCheckTokenAndRedirect = () => {
 
   useEffect(() => {
     if (!token) {
-      console.log("Not logged in");
       navigate("/login");
     }
   }, [navigate, token]);

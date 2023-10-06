@@ -8,6 +8,8 @@ import {
   TextField,
   Typography,
   MenuItem,
+  FormControlLabel,
+  Checkbox,
 } from "@mui/material";
 import NoteAddIcon from "@mui/icons-material/NoteAdd";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
@@ -21,6 +23,7 @@ const CreateCard = () => {
   const [selectedDeckId, setSelectedDeckId] = useState("");
   const [decks, setDecks] = useState([]);
   const [imageFile, setImageFile] = useState(null);
+  const [isMultipleChoice, setIsMultipleChoice] = useState(false);
   const { deckId } = useParams();
 
   const fetchDecks = async () => {
@@ -46,21 +49,17 @@ const CreateCard = () => {
     const formData = new FormData();
     formData.append("question", question);
 
-    // answers array
     for (let i = 0; i < 4; i++) {
       formData.append(`answers[]`, answers[i]);
     }
 
-    // answer array correct answer
     formData.append("correctAnswerIndex", correctAnswerIndex);
+    formData.append("deckId", selectedDeckId);
+    formData.append("isMultipleChoice", isMultipleChoice);
 
-    // img check
     if (imageFile !== null) {
       formData.append("image", imageFile);
     }
-
-    // Include the selected deck ID in the form data
-    formData.append("deckId", selectedDeckId);
 
     try {
       const response = await fetch(`https://studyapp-dapa-98dcdc34bdde.herokuapp.com/api/add-card/${selectedDeckId}`, {
@@ -113,6 +112,18 @@ const CreateCard = () => {
             onSubmit={handleSubmit}
             style={{ width: "100%", marginTop: "16px" }}
           >
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={isMultipleChoice}
+                onChange={() => setIsMultipleChoice(!isMultipleChoice)}
+                color="primary"
+                
+              />
+            }
+            label="Multiple Choice"
+            style={{ color: 'grey' }}
+          />
             <TextField
               margin="normal"
               required
@@ -123,33 +134,47 @@ const CreateCard = () => {
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
             />
-            {[0, 1, 2, 3].map((index) => (
+            {isMultipleChoice
+              ? [0, 1, 2, 3].map((index) => (
+                  <TextField
+                    key={index}
+                    margin="normal"
+                    required
+                    fullWidth
+                    label={`Card answer ${index + 1}`}
+                    type="text"
+                    value={answers[index]}
+                    onChange={(e) => handleAnswerChange(index, e.target.value)}
+                  />
+                ))
+              : (
+                <TextField
+                  margin="normal"
+                  required
+                  fullWidth
+                  label="Card answer"
+                  type="text"
+                  value={answers[0]} // Assuming only one answer in single-choice mode
+                  onChange={(e) => handleAnswerChange(0, e.target.value)}
+                />
+              )}
+            {isMultipleChoice && (
               <TextField
-                key={index}
                 margin="normal"
-                required
+                select
                 fullWidth
-                label={`Card answer ${index + 1}`}
-                type="text"
-                value={answers[index]}
-                onChange={(e) => handleAnswerChange(index, e.target.value)}
-              />
-            ))}
-            <TextField
-              margin="normal"
-              select
-              fullWidth
-              label="Correct Answer"
-              id="correctAnswerIndex"
-              value={correctAnswerIndex}
-              onChange={(e) => setCorrectAnswerIndex(Number(e.target.value))}
-            >
-              {[0, 1, 2, 3].map((index) => (
-                <MenuItem key={index} value={index}>
-                  Answer {index + 1}
-                </MenuItem>
-              ))}
-            </TextField>
+                label="Correct Answer"
+                id="correctAnswerIndex"
+                value={correctAnswerIndex}
+                onChange={(e) => setCorrectAnswerIndex(Number(e.target.value))}
+              >
+                {[0, 1, 2, 3].map((index) => (
+                  <MenuItem key={index} value={index}>
+                    Answer {index + 1}
+                  </MenuItem>
+                ))}
+              </TextField>
+            )}
             <TextField
               margin="normal"
               select
@@ -184,6 +209,6 @@ const CreateCard = () => {
       </Container>
     </ThemeProvider>
   );
-};
+              };  
 
 export default CreateCard;

@@ -1,41 +1,42 @@
 import React, { useState, useEffect } from 'react';
 import { Typography, Container, Grid, Paper, Button } from '@mui/material';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import Tooltip from '@mui/material/Tooltip';
 
 
 function Categories() {
-  const [categories, setCategories] = useState([]);
+  const { categoryName, courseName } = useParams();
+  const [courses, setCourses] = useState([]);
 
-  const fetchDecks = async () => {
+  const fetchCourses = async () => {
     try {
-      const response = await fetch('https://studyapp-dapa-98dcdc34bdde.herokuapp.com/api/categories');
+      const response = await fetch(`https://studyapp-dapa-98dcdc34bdde.herokuapp.com/api/categories/${categoryName}/courses`);
       if (response.ok) {
         const data = await response.json();
-        setCategories(data);
+        setCourses(data);
       } else {
-        console.error("Failed to fetch categories");
+        console.error("Failed to fetch courses");
       }
     } catch (error) {
-      console.error("Error fetching categories:", error);
+      console.error("Error fetching courses:", error);
     }
   }
 
   useEffect(() => {
-    fetchDecks();
-  }, []);
+    fetchCourses();
+  }, [categoryName]);
 
   return (
     <Container maxWidth="lg">
       <Typography variant="h4" align="center" gutterBottom>
-        Browse categories
+        Browse courses in category: {categoryName}
       </Typography>
       <Grid container spacing={2}>
-        {categories.map((category) => (
-          <Grid item xs={12} sm={6} md={4} key={category._id}>
-  <Link to={`/categories/${category.name}`} className="category-link">
+        {courses.map((course) => (
+          <Grid item xs={12} sm={6} md={4} key={course._id}>
+  <Link to={`/categories/${categoryName}/${course.name}`} className="category-link">
     <Paper elevation={3} className="category-box">
-      <Tooltip title={category.name} placement="top">
+      <Tooltip title={course.name} placement="top">
         <Typography
           variant="h3"
           align="center"
@@ -52,7 +53,7 @@ function Categories() {
             textOverflow: 'ellipsis', // Add ellipsis (...) for overflow
           }}
         >
-          {category.name}
+          {course.name}
         </Typography>
       </Tooltip>
     </Paper>
@@ -61,7 +62,7 @@ function Categories() {
         ))}
       </Grid>
     </Container>
-  ); 
+  );
 }
 
 export default Categories;

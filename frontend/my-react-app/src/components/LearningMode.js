@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, Typography, Button, Grid, Paper } from '@mui/material';
+import MasteryRating from './MasteryRating';
 
-const LearningMode = ({ card, onNextCard, onPreviousCard, cards, currentIndex }) => {
+const LearningMode = ({ card, onNextCard, onPreviousCard, cards, currentIndex, userProgress }) => {
     const [showAnswer, setAnswer] = useState(false);
     const getCorrect = () => {
         return card.answers.findIndex((answer) => answer.isCorrect)
     }
-    
+    //fix containers here it is different from others i forgot cardcontent i think
+  const currentUserMasteryRating = userProgress.find((progressItem) => progressItem.cardId === card._id)?.masteryRating;
+
   return (
     <Card>
         <Button className='question-card-button'
@@ -17,6 +20,7 @@ const LearningMode = ({ card, onNextCard, onPreviousCard, cards, currentIndex })
                 console.log(card.answers)
             }}>
         <CardContent className='question-card-button'>
+        <MasteryRating rating={currentUserMasteryRating || 0} />
             <Typography variant="h5" className='center-text'>{showAnswer ? card.answers[getCorrect()].text : card.question}</Typography>
         </CardContent>
         </Button>

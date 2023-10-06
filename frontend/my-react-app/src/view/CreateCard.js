@@ -67,7 +67,7 @@ const CreateCard = () => {
     if (category === "custom") {
 
       try {
-        const categoryResponse = await fetch("http://localhost:4040/api/add-category", {
+        const categoryResponse = await fetch("https://studyapp-dapa-98dcdc34bdde.herokuapp.com/api/add-category", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -90,7 +90,7 @@ const CreateCard = () => {
     }
 
     try {
-      const response = await fetch("http://localhost:4040/api/add-card", {
+      const response = await fetch("https://studyapp-dapa-98dcdc34bdde.herokuapp.com/api/add-card", {
         method: "POST",
         body: formData,
       });

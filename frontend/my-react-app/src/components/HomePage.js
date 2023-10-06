@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
-const ProdUrl = 'https://studyapp-dapa-98dcdc34bdde.herokuapp.com/api/cards';
-const LocalUrl = 'http://localhost:4040/api/cards'
+const ProdUrl = 'https://studyapp-dapa-98dcdc34bdde.herokuapp.com/api/decks';
+const LocalUrl = 'https://studyapp-dapa-98dcdc34bdde.herokuapp.com/api/decks'
 
 function HomePage() {
   const [decks, setDecks] = useState([]);

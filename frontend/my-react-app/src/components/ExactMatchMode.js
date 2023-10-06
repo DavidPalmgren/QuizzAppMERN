@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, Typography, Button, Grid, Paper, Box, TextField } from '@mui/material';
+import MasteryRating from './MasteryRating';
 
-const ExactMatchMode = ({ card, onExactAnswerClick, answerStatus, resetAnswerStatus, score, cards }) => {
+const ExactMatchMode = ({ card, onExactAnswerClick, answerStatus, resetAnswerStatus, score, cards, userProgress }) => {
     const [timeoutActive, setTimeoutActive] = useState(false);
     const [userAnswer, setUserAnswer] = useState("");
     const [showAnswer, setAnswer] = useState(false);
@@ -38,12 +39,16 @@ const ExactMatchMode = ({ card, onExactAnswerClick, answerStatus, resetAnswerSta
             setTimeoutActive(true);
             setTextFieldBorderStyle({ backgroundColor: 'red' });
         }
+        setUserAnswer("");
     }
+  const currentUserMasteryRating = userProgress.find((progressItem) => progressItem.cardId === card._id)?.masteryRating;
+
 
     return (
         <Card>
             <CardContent>
                 <CardContent className='question-card'>
+                <MasteryRating rating={currentUserMasteryRating || 0} />
                     <Typography variant="h5" className='center-text'>{showAnswer ? card.answers[getCorrect()].text : card.question}</Typography>
                 </CardContent>
             </CardContent>

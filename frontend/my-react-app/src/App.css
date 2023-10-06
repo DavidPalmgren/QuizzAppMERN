@@ -40,11 +40,27 @@
 .category-link {
   text-decoration: none;
   color: inherit;
+  background-color: red;
 }
 
 .question-card {
-  padding: 24px; /* Adjust the padding as needed */
-  background-color: #f0f0f0; /* Change the background color as needed */
-  border-radius: 8px; /* Add rounded corners */
+  padding: 24px;
+  background-color: #f0f0f0;
+  border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.star {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  margin-right: 4px;
+}
+
+.star-filled {
+  background-color: yellow;
+}
+
+.star-outline {
+  border: 1px solid black;
 }

@@ -47,3 +47,41 @@
     margin-bottom: 16px;
     position: relative;
 }
+
+.star {
+display: inline-block;
+width: 16px;
+height: 16px;
+margin-right: 4px;
+}
+
+.star-filled {
+background-color: yellow;
+}
+
+.star-outline {
+border: 1px solid black;
+}
+
+.mastery-rating {
+display: flex;
+align-items: center;
+}
+
+.mui-icon {
+    font-size: 24px;
+    margin-right: 4px;
+}
+
+.category-link {
+    text-decoration: none;
+    color: inherit;
+}
+
+.category-box {
+    height: 200px;
+}
+
+.category-font {
+    font-size: 32px;
+}

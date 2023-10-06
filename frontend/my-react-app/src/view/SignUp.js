@@ -26,7 +26,7 @@ export default function SignUp() {
     };
 
     try {
-      const response = await fetch('https://studyapp-dapa-98dcdc34bdde.herokuapp.com/api/register', {
+      const response = await fetch('lhttps://studyapp-dapa-98dcdc34bdde.herokuapp.com/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -37,14 +37,11 @@ export default function SignUp() {
       if (response.ok) {
         const result = await response.json();
         console.log('Registration successful:', result);
-        // You can handle success here, e.g., redirect to login page
       } else {
         console.error('Registration failed:', response.status);
-        // Handle registration failure, e.g., show an error message
       }
     } catch (error) {
       console.error('Error registering user:', error);
-      // Handle registration error, e.g., show an error message
     }
   };
 
