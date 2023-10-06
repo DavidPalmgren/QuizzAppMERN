@@ -26,7 +26,7 @@ export default function SignUp() {
     };
 
     try {
-      const response = await fetch('https://studyapp-dapa-98dcdc34bdde.herokuapp.com/register', {
+      const response = await fetch('https://studyapp-dapa-98dcdc34bdde.herokuapp.com/api/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
