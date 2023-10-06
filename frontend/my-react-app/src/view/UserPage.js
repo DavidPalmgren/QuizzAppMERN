@@ -61,9 +61,10 @@ function ProfilePage() {
     fetchUserByParam();
   }, []);
 
-  function formatTimeToHours(seconds) {
+  function formatTimeToHours(milliseconds) {
+    const seconds = Math.floor(milliseconds / 1000); // Convert milliseconds to seconds cause its weird ya know
     const hours = Math.floor(seconds / 3600); // 3600 seconds in an hour
-    const minutes = Math.floor((seconds % 3600) / 60); // in min
+    const minutes = Math.floor((seconds % 3600) / 60); //etc
     return `${hours} hours ${minutes} minutes`;
   }
   
