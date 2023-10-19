@@ -1,6 +1,6 @@
-# My MERN Stack Project - TestApp
+# My MERN Stack Project - StudyBuddy
 
-Welcome to the TestApp project, an example MERN (MongoDB, Express, React, Node.js) application.
+Welcome to the StudyBuddy project, an example MERN (MongoDB, Express, React, Node.js) application.
 
 ## Prerequisites
 
