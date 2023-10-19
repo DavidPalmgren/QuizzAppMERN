@@ -10,7 +10,7 @@ function Categories() {
 
   const fetchCourses = async () => {
     try {
-      const response = await fetch(`https://studyapp-dapa-98dcdc34bdde.herokuapp.com/api/categories/${categoryName}/courses`);
+      const response = await fetch(`http://localhost:4040/api/categories/${categoryName}/courses`);
       if (response.ok) {
         const data = await response.json();
         setCourses(data);

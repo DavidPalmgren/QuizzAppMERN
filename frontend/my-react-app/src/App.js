@@ -16,7 +16,9 @@ import Categories from './view/Categories';
 import Courses from './view/Courses';
 import Decks from './view/Decks';
 import SignUp from './view/SignUp';
-import UserPage from './view/UserPage'
+import UserPage from './view/UserPage';
+import Search from './view/Search';
+import Edit from './view/EditCard';
 // Make paths uniform
 
 function App() {
@@ -37,6 +39,8 @@ function App() {
           <Route path="/quizgame/:deckId" element={<QuizGame/>} />
           <Route path="/sign-up" element={<SignUp/>} />
           <Route path="/user/:userName" element={<UserPage/>} />
+          <Route path="/search/:search" element={<Search/>} />
+          <Route path="/edit/" element={<Edit/>} />
         </Routes>
       </Layout>
     </Router>

@@ -18,6 +18,7 @@ import {
 import DeleteIcon from "@mui/icons-material/Delete";
 import PlayCircleIcon from '@mui/icons-material/PlayCircle';
 import NoteAddIcon from "@mui/icons-material/NoteAdd";
+import EditIcon from '@mui/icons-material/Edit';
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { useCheckTokenAndRedirect } from "../requests/JWT";
 
@@ -33,7 +34,9 @@ const CreateDeck = () => {
   const [decks, setDecks] = useState([]);
   const [newCourse, setNewCourse] = useState("");
   const [newCategory, setNewCategory] = useState("");
-  const [selectedCourse, setSelectedCourse] = useState(""); 
+  const [selectedCourse, setSelectedCourse] = useState("");
+  const [difficulty, setDifficulty] = useState(1);
+  const [isCreatingDeck, setIsCreatingDeck] = useState(false);
   //dont touch old stuff just cause more problem
 
   useCheckTokenAndRedirect();
@@ -58,9 +61,13 @@ const CreateDeck = () => {
     setSelectedCourse(event.target.value);
   };
 
+  const handleDifficultyChange = (event) => {
+    setDifficulty(event.target.value)
+  }
+
   const fetchCategories = async () => {
     try {
-      const response = await fetch("https://studyapp-dapa-98dcdc34bdde.herokuapp.com/api/categories");
+      const response = await fetch("http://localhost:4040/api/categories");
       if (response.ok) {
         const data = await response.json();
         setCategories(data);
@@ -74,7 +81,7 @@ const CreateDeck = () => {
 
   const fetchCourses = async () => {
     try {
-      const response = await fetch("https://studyapp-dapa-98dcdc34bdde.herokuapp.com/api/courses");
+      const response = await fetch("http://localhost:4040/api/courses");
       if (response.ok) {
         const data = await response.json();
         setCourses(data);
@@ -90,11 +97,17 @@ const CreateDeck = () => {
     const username = localStorage.getItem('username');
     if (!username) {
       console.log("USERNAME NOT IN LOCAL STORAGE WTH DO A REDIRECT IF THIS IS A POSSIBLE SCENARIO")
+      return;
     }
-  
+    if (isCreatingDeck) {
+      return;
+    }
+
+    setIsCreatingDeck(true);
+
     try {
       console.log(name, selectedCategory, selectedCourse, username)
-      const response = await fetch("https://studyapp-dapa-98dcdc34bdde.herokuapp.com/api/add-decks", {
+      const response = await fetch("http://localhost:4040/api/add-decks", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -104,17 +117,19 @@ const CreateDeck = () => {
           name,
           category: selectedCategory,
           course: selectedCourse,
-          username: username,
+          author: username,
+          difficulty : difficulty,
         }),
       });
-  
+
       if (response.ok) {
         const newDeckData = await response.json();
+        addAchievement();
         if (newDeckData && newDeckData.name && newDeckData.category && newDeckData.course) {
           setDecks((prevDecks) => [...prevDecks, newDeckData]);
           setName("");
           setSelectedCategory("");
-          setSelectedCourse(""); // Clearing all the states
+          setSelectedCourse("");
         } else {
           console.error("Invalid deck data received from the server.");
         }
@@ -123,10 +138,41 @@ const CreateDeck = () => {
       }
     } catch (error) {
       console.error("Error creating deck:", error);
+    } finally {
+      setIsCreatingDeck(false);
     }
   };
 
-//TODO FIX USEEFFECTS
+  const addAchievement = async () => {
+    const username = localStorage.getItem('username');
+    if (!username) {
+      console.log("USERNAME NOT IN LOCAL STORAGE WTH DO A REDIRECT IF THIS IS A POSSIBLE SCENARIO")
+    }
+
+    try {
+      const response = await fetch("http://localhost:4040/api/add-achievement-to-user", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          achievement: "Craftsmanship",
+          user: username,
+
+        }),
+      });
+
+      if (response.ok) {
+      } else {
+        console.error("Failed to create deck.");
+      }
+    } catch (error) {
+      console.error("Error creating deck:", error);
+    }
+  }
+
+  //TODO FIX USEEFFECTS
   useEffect(() => {
     Promise.all([fetchCategories(), fetchCourses()])
       .then(([categoriesData, coursesData]) => {
@@ -138,7 +184,7 @@ const CreateDeck = () => {
 
   const fetchDecks = async (username) => {
     try {
-      const response = await fetch(`https://studyapp-dapa-98dcdc34bdde.herokuapp.com/api/personal-decks?author=${username}`);
+      const response = await fetch(`http://localhost:4040/api/personal-decks?author=${username}`);
       if (response.ok) {
         const data = await response.json();
         setDecks(data);
@@ -154,7 +200,7 @@ const CreateDeck = () => {
     // Fetch courses for the selected category when it changes
     const fetchCoursesForCategory = async () => {
       try {
-        const response = await fetch(`https://studyapp-dapa-98dcdc34bdde.herokuapp.com/api/categories/${selectedCategory}/courses`);
+        const response = await fetch(`http://localhost:4040/api/categories/${selectedCategory}/courses`);
         if (response.ok) {
           const data = await response.json();
           setCoursesForCategory(data);
@@ -184,7 +230,7 @@ const CreateDeck = () => {
     const confirmDelete = window.confirm("Are you sure you want to delete this deck?");
 
     if (confirmDelete) {
-      fetch(`https://studyapp-dapa-98dcdc34bdde.herokuapp.com/api/decks/delete/${deckId}`, {
+      fetch(`http://localhost:4040/api/decks/delete/${deckId}`, {
         method: "DELETE",
       })
         .then((response) => {
@@ -203,7 +249,7 @@ const CreateDeck = () => {
 
   const handleCreateCategory = async () => {
     try {
-      const response = await fetch("https://studyapp-dapa-98dcdc34bdde.herokuapp.com/api/add-category", {
+      const response = await fetch("http://localhost:4040/api/add-category", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -233,7 +279,12 @@ const CreateDeck = () => {
 
   const handleCreateCourse = async () => {
     try {
-      const response = await fetch("https://studyapp-dapa-98dcdc34bdde.herokuapp.com/api/add-course", {
+
+      if (isCreatingDeck) {
+        return;
+      }
+
+      const response = await fetch("http://localhost:4040/api/add-course", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -259,6 +310,8 @@ const CreateDeck = () => {
       }
     } catch (error) {
       console.error("Error creating course:", error);
+    } finally {
+      setIsCreatingDeck(false); // Set isCreatingDeck to false regardless of success or error idk what is going wrong
     }
   };
 
@@ -290,7 +343,7 @@ const CreateDeck = () => {
                     <ListItemSecondaryAction>
                       <Tooltip title="Play deck">
                         <Link to={`/quizgame/${deck._id}`}>
-                          <IconButton edge="end" aria-label="add-card">
+                          <IconButton edge="end" aria-label="play">
                             <PlayCircleIcon />
                           </IconButton>
                         </Link>
@@ -299,6 +352,13 @@ const CreateDeck = () => {
                         <Link to={`/create-cardv2/${deck._id}`}>
                           <IconButton edge="end" aria-label="add-card">
                             <NoteAddIcon />
+                          </IconButton>
+                        </Link>
+                      </Tooltip>
+                      <Tooltip title="Edit">
+                        <Link to={`/edit`}>
+                          <IconButton edge="end" aria-label="edit">
+                            <EditIcon />
                           </IconButton>
                         </Link>
                       </Tooltip>
@@ -361,31 +421,49 @@ const CreateDeck = () => {
                 </TextField>
                 {coursesForCategory.length > 0 && (
                   <TextField
-                  margin="normal"
-                  select
-                  fullWidth
-                  label={`Select a course for ${selectedCategory}`}
-                  id="course"
-                  value={selectedCourse}
-                  onChange={handleCourseChange}
-                >
-                  {coursesForCategory.map((course) => (
-                    <MenuItem key={course._id} value={course.name}>
-                      {course.name}
-                    </MenuItem>
-                  ))}
-                </TextField>
+                    margin="normal"
+                    select
+                    fullWidth
+                    label={`Select a course for ${selectedCategory}`}
+                    id="course"
+                    value={selectedCourse}
+                    onChange={handleCourseChange}
+                  >
+                    {coursesForCategory.map((course) => (
+                      <MenuItem key={course._id} value={course.name}>
+                        {course.name}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                )}
+                {selectedCourse && (
+                  <TextField
+                    margin="normal"
+                    select
+                    fullWidth
+                    label={`Difficulty`}
+                    id="difficulty"
+                    value={difficulty}
+                    onChange={handleDifficultyChange}
+                  >
+                          {[1, 2, 3, 4, 5].map((level) => (
+        <MenuItem key={level} value={level}>
+          {level}
+        </MenuItem>
+      ))}
+                    </TextField>
                 )}
 
-                <Button
-                  variant="outlined"
-                  color="primary"
-                  type="submit"
-                  fullWidth
-                  onClick={postDeck}
-                >
-                  Create
-                </Button>
+
+                    <Button
+                      variant="outlined"
+                      color="primary"
+                      type="submit"
+                      fullWidth
+                      onClick={postDeck}
+                    >
+                      Create
+                    </Button>
 
 
 
@@ -395,7 +473,7 @@ const CreateDeck = () => {
 
 
 
-              </form>
+                  </form>
             </div>
             <div
               style={{
@@ -409,20 +487,20 @@ const CreateDeck = () => {
             >
               <h2>Create new Course</h2>
               <TextField
-                  margin="normal"
-                  select
-                  fullWidth
-                  label="Course category"
-                  id="category"
-                  value={selectedCategoryCreateCourse}
-                  onChange={handleselectedCategoryCreateCourse}
-                >
-                  {categories.map((cat) => (
-                    <MenuItem key={cat._id} value={cat.name}>
-                      {cat.name}
-                    </MenuItem>
-                  ))}
-                </TextField>
+                margin="normal"
+                select
+                fullWidth
+                label="Course category"
+                id="category"
+                value={selectedCategoryCreateCourse}
+                onChange={handleselectedCategoryCreateCourse}
+              >
+                {categories.map((cat) => (
+                  <MenuItem key={cat._id} value={cat.name}>
+                    {cat.name}
+                  </MenuItem>
+                ))}
+              </TextField>
               <TextField
                 label="Course Name"
                 onChange={(e) => setNewCourse(e.target.value)}

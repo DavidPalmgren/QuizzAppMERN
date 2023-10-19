@@ -5,6 +5,7 @@ import './css/cssA.css'
 import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import { UserProvider } from './requests/UserContext';
 
 const theme = createTheme();
 
@@ -13,7 +14,9 @@ root.render(
   <React.StrictMode>
     <ThemeProvider theme={theme}>
     <CssBaseline />
+    <UserProvider>
       <App />
+      </UserProvider>
     </ThemeProvider>
   </React.StrictMode>
 );

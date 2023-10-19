@@ -13,6 +13,7 @@ import {
 } from "@mui/material";
 import NoteAddIcon from "@mui/icons-material/NoteAdd";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
+import { useCheckTokenAndRedirect } from "../requests/JWT";
 
 const defaultTheme = createTheme();
 
@@ -26,9 +27,14 @@ const CreateCard = () => {
   const [isMultipleChoice, setIsMultipleChoice] = useState(false);
   const { deckId } = useParams();
 
+
+  useCheckTokenAndRedirect();
+  const token = localStorage.getItem('token');
+  const username = localStorage.getItem('username');
+
   const fetchDecks = async () => {
     try {
-      const response = await fetch("https://studyapp-dapa-98dcdc34bdde.herokuapp.com/api/decks");
+      const response = await fetch(`http://localhost:4040/api/personal-decks?author=${username}`);
       if (response.ok) {
         const data = await response.json();
         setDecks(data);
@@ -62,7 +68,7 @@ const CreateCard = () => {
     }
 
     try {
-      const response = await fetch(`https://studyapp-dapa-98dcdc34bdde.herokuapp.com/api/add-card/${selectedDeckId}`, {
+      const response = await fetch(`http://localhost:4040/api/add-card/${selectedDeckId}`, {
         method: "POST",
         body: formData,
       });

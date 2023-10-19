@@ -11,16 +11,22 @@ import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 
+import { fetchUser } from '../requests/userRequests.js';
+
 import { useNavigate } from 'react-router-dom';
+import { useUser } from '../requests/UserContext';
 
 const defaultTheme = createTheme();
 
 export default function SignIn() {
+
   const [formData, setFormData] = useState({
     username: '',
     password: '',
   });
+
   const navigate = useNavigate();
+  const { setIsLoggedIn, setUser } = useUser();
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -30,11 +36,12 @@ export default function SignIn() {
     });
   };
 
+
   const handleSubmit = async (event) => {
     event.preventDefault();
 
     try {
-      const response = await fetch('https://studyapp-dapa-98dcdc34bdde.herokuapp.com/api/login', {
+      const response = await fetch('http://localhost:4040/api/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -46,10 +53,13 @@ export default function SignIn() {
         const result = await response.json();
         const { token } = result;
       
-        // sTore the token in localStorage for now
+        // Store the token in localStorage for now
         localStorage.setItem('token', token);
-        localStorage.setItem('username', formData.username) // not the best way to store username but otherwise it's reliant on the token which caused a bunch of problems leaving it like this untill i find a fix.
-        navigate('/createdeck');
+        localStorage.setItem('username', formData.username);
+        setIsLoggedIn(true); // Update isLoggedIn in the context
+        setUser(formData.username); // Update user in the context
+        navigate('/createdeck'); // Navigate to the new route
+
       } else {
         console.error('Login failed:', response.status);
         // show failure message TODO

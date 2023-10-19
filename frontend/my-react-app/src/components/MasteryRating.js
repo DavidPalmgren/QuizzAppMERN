@@ -1,7 +1,7 @@
 import React from 'react';
 import { Star, StarHalf, StarOutline } from '@mui/icons-material';
 
-const MasteryRating = ({ rating }) => {
+const MasteryRating = ({ rating, style }) => {
   const renderStars = (rating) => {
     const stars = [];
     for (let i = 0; i < 3; i++) {
@@ -17,7 +17,7 @@ const MasteryRating = ({ rating }) => {
   };
 
   return (
-    <div className="mastery-rating">
+    <div className="mastery-rating" style={style}>
       {renderStars(rating)}
     </div>
   );

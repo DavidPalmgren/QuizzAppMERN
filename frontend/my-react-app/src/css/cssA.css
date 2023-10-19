@@ -25,6 +25,15 @@
     transform: translate(-50%, -50%);
 }
 
+.top-text {
+    top: 40px;
+    left: 50%;
+    margin: 0;
+    position: absolute;
+    transform: translate(-50%, -50%);
+
+}
+
 .pseudo-card {
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
@@ -84,4 +93,8 @@ align-items: center;
 
 .category-font {
     font-size: 32px;
+}
+
+.bold-text {
+    font-weight: bold;
 }

@@ -16,7 +16,7 @@ const QuizGame = () => {
   const [mode, setMode] = useState('learning');
   const [startTime, setStartTime] = useState(null);
   const [totalTime, setTotalTime] = useState(0);
-  const [isQuizButtonDisabled, setIsQuizButtonDisabled] = useState(false);
+  const [isQuizButtonDisabled, setIsQuizButtonDisabled] = useState(true);
   const [userProgress, setUserProgress] = useState([]);
 
 
@@ -32,7 +32,7 @@ const QuizGame = () => {
         return;
       }
   
-      const response = await fetch('https://studyapp-dapa-98dcdc34bdde.herokuapp.com/api/user-progress', {
+      const response = await fetch('http://localhost:4040/api/user-progress', {
         method: 'GET',
         headers: {
           Authorization: token,
@@ -63,13 +63,13 @@ const QuizGame = () => {
 
     const fetchCards = async () => {
       try {
-        const response = await fetch(`https://studyapp-dapa-98dcdc34bdde.herokuapp.com/api/decks/${deckId}/cards`);
+        const response = await fetch(`http://localhost:4040/api/decks/${deckId}/cards`);
         if (response.ok) {
           const data = await response.json();
           setCards(data);
           setAnswerStatus(Array(data.length).fill(null));
           console.log('deck fetch:', data)
-          const hasNonMultipleChoice = data.some(card => card.isMultipleChoice); //INVERTED THIS CAUSE IM NOT SURE WHY IT WASNT WORKING ALL OF A SUDDEN
+          const hasNonMultipleChoice = data.some(card => card.isMultipleChoice === "false");
           setIsQuizButtonDisabled(hasNonMultipleChoice);
         } else {
           console.error('Failed to fetch cards');
@@ -85,34 +85,32 @@ const QuizGame = () => {
   useEffect(() => {
     if (showResult && startTime) {
       const endTime = new Date();
-      const timeSpent = (endTime - startTime) / 1000; // Convert to seconds
-      setTotalTime(timeSpent); // Update total time spent
+      const timeSpent = (endTime - startTime) / 1000; // to seconds
+      setTotalTime(timeSpent); // total time spent
       console.log('Time spent (seconds):', timeSpent);
 
-      // Send data to the server when the user finishes
       sendGameDataToServer(timeSpent);
     }
   }, [showResult, startTime]);
 
   const sendGameDataToServer = async (timeSpent) => {
     try {
-      // Get the username from local storage
       const username = localStorage.getItem('username');
-      console.log(username)
   
       if (!username) {
         console.error('Username not found in local storage');
         return;
       }
-  
-      // Create an array to store card data for sending to the server
+
       const cardData = cards.map(card => ({
         cardId: card._id,
         answeredCorrectly: card.answeredCorrectly,
         masteryRating: card.masteryRating,
       }));
+
+      console.log('CardData: ', cardData)
   
-      const response = await fetch('https://studyapp-dapa-98dcdc34bdde.herokuapp.com/api/record-study-session', {
+      const response = await fetch('http://localhost:4040/api/record-study-session', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -147,6 +145,8 @@ const QuizGame = () => {
       answer.isCorrect ? 'correct' : 'wrong'
     );
 
+    console.log('is correct var: ', isCorrect)
+
     setAnswerStatus(updatedAnswerStatus);
 
     if (isCorrect) {
@@ -171,17 +171,19 @@ const QuizGame = () => {
     
       // Check for null or undefined and set to 0.5
       if (cards[currentIndex].masteryRating == null) {
-        cards[currentIndex].masteryRating = 0.5;
+        cards[currentIndex].masteryRating = 0;
       }
     }
     
 
-    // delay for 1 second before moving to the next question
+    // delay for 1 second before moving to the next question, if game ending im adding extra time for user to view correct
     setTimeout(() => {
       if (currentIndex < cards.length - 1) {
         setCurrentIndex(currentIndex + 1);
       } else {
-        setShowResult(true);
+        setTimeout(() => {
+          setShowResult(true);
+        }, 1000);
       }
     }, 1000);
   };
@@ -232,10 +234,11 @@ const QuizGame = () => {
     // ADD ELIF FOR 
     if (correct) {
       setScore(score + 1);
+      console.log('exactanswerclick: ', correct)
       // Update the card's data
       cards[currentIndex].answeredCorrectly = true;
       if (cards[currentIndex].masteryRating < 3) {
-        cards[currentIndex].masteryRating += 1;
+        cards[currentIndex].masteryRating += 0.5;
       } else if (cards[currentIndex].masteryRating === 3) {
         // Do nothing, keep it on 3*
       }
@@ -245,25 +248,29 @@ const QuizGame = () => {
         cards[currentIndex].masteryRating = 0;
       }
     } else {
+      console.log('exactanswerclick false: ', correct)
+      cards[currentIndex].answeredCorrectly = false;
+
       // If answered incorrectly, set masteryRating to 0.5
       cards[currentIndex].masteryRating -= 0.5;
     
       // Check for null or undefined and set to 0.5
       if (cards[currentIndex].masteryRating == null) {
-        cards[currentIndex].masteryRating = 0.5;
+        cards[currentIndex].masteryRating = 0;
       }
     }
+    setShowResult(false);
 
     setTimeout(() => {
       if (currentIndex < cards.length - 1) {
         setCurrentIndex(currentIndex + 1);
       } else {
-        setShowResult(true);
+        setTimeout(() => {
+          setShowResult(true);
+        }, 1000);
       }
     }, 1000);
   };
-
-  console.log(isQuizButtonDisabled)
 
   return (
     <Container>
@@ -308,6 +315,7 @@ const QuizGame = () => {
               <QuestionCard
                 card={cards[currentIndex]}
                 onAnswerClick={handleAnswerClick}
+                onExactAnswerClick={onExactAnswerClick}
                 answerStatus={answerStatus}
                 resetAnswerStatus={resetAnswerStatus}
                 score={score}

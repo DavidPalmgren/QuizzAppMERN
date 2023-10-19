@@ -33,7 +33,7 @@ const Result = ({ score, totalQuestions, onRestart }) => {
         return;
       }
 
-      const response = await fetch(`https://studyapp-dapa-98dcdc34bdde.herokuapp.com/api/deck/add-comment/${deckId}`, {
+      const response = await fetch(`http://localhost:4040/api/deck/add-comment/${deckId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -61,7 +61,7 @@ const Result = ({ score, totalQuestions, onRestart }) => {
 
   const fetchComments = async () => {
     try {
-      const response = await fetch(`https://studyapp-dapa-98dcdc34bdde.herokuapp.com/api/decks/get-comments/${deckId}`);
+      const response = await fetch(`http://localhost:4040/api/decks/get-comments/${deckId}`);
 
       if (response.ok) {
         const data = await response.json();
