@@ -98,36 +98,37 @@ function ProfilePage () {
   }, [])
 
   useEffect(() => {
-    const thresholds = [100, 500]
-    const achievementsToAdd = []
-
+    const thresholds = [100, 500];
+    const achievementsToAdd = [];
+  
     thresholds.forEach(threshold => {
       if (
-        userData.totalCardsAnswered >= threshold &&
-        !userData.achievements.some(
+        userData?.totalCardsAnswered >= threshold &&
+        userData?.achievements?.some(
           achievement =>
             achievement.name === (threshold === 100 ? 'Newbie' : 'Intermediate')
         )
       ) {
         // Push the corresponding achievement to the list
-        achievementsToAdd.push(threshold === 100 ? 'Newbie' : 'Intermediate')
+        achievementsToAdd.push(threshold === 100 ? 'Newbie' : 'Intermediate');
       }
-    })
-
+    });
+  
     // Check if the URL parameter username matches the token username
-    const username = localStorage.getItem('username')
+    const username = localStorage.getItem('username');
     if (userName === username) {
       // If there are achievements to add, call the addAchievement function
       if (achievementsToAdd.length > 0 && !achievementAdded) {
-        addAchievement(achievementsToAdd)
-        setAchievementAdded(true) // Set the flag to prevent further calls
+        addAchievement(achievementsToAdd);
+        setAchievementAdded(true); // Set the flag to prevent further calls
       }
     } else {
       console.log(
         'Username in URL does not match token username. Achievements will not be added.'
-      )
+      );
     }
-  }, [userData, achievementAdded])
+  }, [userData, achievementAdded]);
+  
 
   const addAchievement = async achievements => {
     // Check if 'username' and 'token' are available in local storage
