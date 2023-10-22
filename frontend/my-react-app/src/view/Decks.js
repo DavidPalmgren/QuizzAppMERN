@@ -37,13 +37,13 @@ function Decks() {
       case 2:
         return 'yellow'; // Rating 2: Yellow
       case 3:
-        return 'orange'; // Rating 3: Orange
+        return 'orange'; // etc ..
       case 4:
-        return 'darkorange'; // Rating 4: Dark Orange
+        return 'darkorange';
       case 5:
-        return 'red'; // Rating 5: Red
+        return 'red';
       default:
-        return 'green'; // Default to gray
+        return 'green';
     }
   };
 

@@ -11,8 +11,8 @@ import PersonIcon from '@mui/icons-material/Person';
 import SearchIcon from '@mui/icons-material/Search';
 import { useUser } from '../requests/UserContext';
 import {
-  Category as CategoryIcon, // Add the category icon here
-  Add as AddIcon, // Add the add icon here
+  Category as CategoryIcon,
+  Add as AddIcon,
   LockOpen,
 } from '@mui/icons-material';
 

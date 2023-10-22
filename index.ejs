@@ -456,7 +456,7 @@ app.post('/api/add-category', async (req, res) => {
   const { name } = req.body;
 
   try {
-    // Check if the category already exists
+    // check if the category already exists
     const existingCategory = await categories.findOne({ name });
 
     if (existingCategory) {
@@ -775,7 +775,6 @@ app.put('/api/update-card/:deckId/:cardId', async (req, res) => {
   const cardId = req.params.cardId;
   const { question, isMultipleChoice, answers, correctAnswerIndex, category, creator } = req.body;
 
-  // Convert isMultipleChoice to a string
   const isMultipleChoiceString = isMultipleChoice.toString();
 
   try {
@@ -837,7 +836,7 @@ app.post('/api/add-achievement-to-user', async (req, res) => {
       const hasAchievement = userDoc.achievements.some(
         (a) => a.name === achievementName
       );
-
+      // Pogo the Dogo
       if (hasAchievement) {
         return res.status(400).json({ message: `User already has the achievement: ${achievementName}` });
       }

@@ -62,11 +62,11 @@ function Categories() {
                       display: 'flex',
                       justifyContent: 'center',
                       alignItems: 'center',
-                      textShadow: '2px 2px 4px rgba(0, 0, 0, 0.5)', // Add shadow
-                      maxWidth: '100%', // Limit maximum width
-                      whiteSpace: 'nowrap', // Prevent text from wrapping
+                      textShadow: '2px 2px 4px rgba(0, 0, 0, 0.5)',
+                      maxWidth: '100%',
+                      whiteSpace: 'nowrap',
                       overflow: 'hidden',
-                      textOverflow: 'ellipsis', // Add ellipsis (...) for overflow
+                      textOverflow: 'ellipsis', //shoddy solution
                     }}
                   >
                     {category.name}

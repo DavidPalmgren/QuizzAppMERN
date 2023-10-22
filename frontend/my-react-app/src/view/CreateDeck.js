@@ -215,7 +215,7 @@ const CreateDeck = () => {
     if (selectedCategory) {
       fetchCoursesForCategory();
     }
-  }, [selectedCategory]);
+  }, [selectedCategory, courses]);
 
   useEffect(() => {
     fetchDecks(username);
@@ -262,10 +262,12 @@ const CreateDeck = () => {
 
       if (response.ok) {
         const newCategoryData = await response.json();
-        if (newCategoryData && newCategoryData.name) {
-          setCategories((prevCategories) => [...prevCategories, newCategoryData]);
-          setCategory(newCategoryData.name); // Select the newly created category
+        console.log('cat data:', newCategoryData)
+        if (newCategoryData) {
+          setCategories((prevCategories) => [...prevCategories, newCategory]); //broke this will do refetch for quick bug fix, fix this later if time allows.
+          setCategory(newCategory); // Select the newly created category
           setNewCategory(""); // Clear the custom category input
+          fetchCategories();
         } else {
           console.error("Invalid category data received from the server.");
         }
@@ -302,6 +304,7 @@ const CreateDeck = () => {
           console.log("Course created successfully.");
           setNewCourse(""); // Clears the input field
           setSelectedCategoryCreateCourse("")
+          fetchCourses();
         } else {
           console.error("Invalid course data received from the server.");
         }

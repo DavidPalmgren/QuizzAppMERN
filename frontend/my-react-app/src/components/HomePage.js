@@ -62,7 +62,7 @@ function HomePage() {
         </Button>
       </Box>
 
-      {/* Call to Action */}
+      {/* Call to action */}
       <Box
         sx={{
           backgroundColor: '#F44336',
@@ -91,7 +91,7 @@ function HomePage() {
           Featured Decks
         </Typography>
         <Grid container spacing={3}>
-          {/* You can map through featured courses and display them here */}
+          {/* mapping here */}
           {decks.map((deck) => (
 
           

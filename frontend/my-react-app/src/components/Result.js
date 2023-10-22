@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Typography, Button, CardContent, TextField, Rating, Box, List, ListItem, ListItemText } from '@mui/material';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 
 const Result = ({ score, totalQuestions, onRestart }) => {
   const [comment, setComment] = useState('');
@@ -28,10 +31,28 @@ const Result = ({ score, totalQuestions, onRestart }) => {
       const token = localStorage.getItem('token');
       const username = localStorage.getItem('username');
 
-      if (!token) {
-        console.error('Token not found in local storage');
+      if (comment == "") {
+        toast.error("Your comment lacks any text", {
+          position: toast.POSITION.TOP_CENTER,
+        });
         return;
       }
+
+      if (!rating) {
+        toast.error("Please chose a rating to give the deck", {
+          position: toast.POSITION.TOP_CENTER,
+        });
+        return;
+      }
+
+      if (!token) {
+        toast.error("You can't comment or rate a deck if you are not registered.", {
+          position: toast.POSITION.TOP_CENTER,
+        });
+        return;
+      }
+
+
 
       const response = await fetch(`http://localhost:4040/api/deck/add-comment/${deckId}`, {
         method: 'POST',
@@ -43,7 +64,7 @@ const Result = ({ score, totalQuestions, onRestart }) => {
           username: username,
           comment: comment,
           rating: rating,
-        }), // Stringify the request body
+        }),
       });
 
       if (response.ok) {
@@ -51,6 +72,9 @@ const Result = ({ score, totalQuestions, onRestart }) => {
         console.log(data);
         fetchComments()
         setComment("");
+        toast.success("Added", {
+          position: toast.POSITION.TOP_CENTER,
+        });
       } else {
         console.error('Failed to post comment');
       }
@@ -65,7 +89,7 @@ const Result = ({ score, totalQuestions, onRestart }) => {
 
       if (response.ok) {
         const data = await response.json();
-        setComments(data); // Set the comments retrieved from the server
+        setComments(data);
       } else {
         console.error('Failed to fetch comments');
       }
@@ -80,6 +104,7 @@ const Result = ({ score, totalQuestions, onRestart }) => {
 
   return (
     <CardContent className='pseudo-card'>
+      <ToastContainer autoClose={5000} />
       <Typography variant="h5">Quiz Results</Typography>
       <Typography variant="h6">Score: {score}/{totalQuestions}</Typography>
       <Button variant="contained" onClick={onRestart}>
@@ -113,14 +138,14 @@ const Result = ({ score, totalQuestions, onRestart }) => {
         <List>
   {comments.map((comment, index) => (
     <ListItem key={index} style={{
-      border: '1px solid #ccc', // Border style
-      borderRadius: '8px',      // Rounded corners
-      padding: '10px',          // Padding inside the comment box
-      marginBottom: '10px',     // Spacing between comments
+      border: '1px solid #ccc', 
+      borderRadius: '8px',      
+      padding: '10px',         
+      marginBottom: '10px',     
     }}>
       <ListItemText
         primary={
-          <span style={{ color: 'black' }}>{comment.text}</span> // Change 'blue' to your desired text color
+          <span style={{ color: 'black' }}>{comment.text}</span>
         }
         secondary={
           <React.Fragment>
